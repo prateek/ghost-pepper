@@ -538,7 +538,7 @@ struct SettingsView: View {
     }
 
     private func copyTranscriptionLabTranscript(for entry: TranscriptionLabEntry) {
-        let transcript = preferredTranscriptToCopy(for: entry)
+        let transcript = entry.preferredTranscript
         guard !transcript.isEmpty else {
             return
         }
@@ -1740,7 +1740,7 @@ struct SettingsView: View {
                             }
                             .buttonStyle(.borderless)
                             .help("Copy this transcript")
-                            .disabled(preferredTranscriptToCopy(for: entry).isEmpty)
+                            .disabled(entry.preferredTranscript.isEmpty)
                             .padding(.top, 12)
 
                             Button {
@@ -2588,6 +2588,19 @@ struct SettingsView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+                }
+            }
+
+            SettingsCard("Automation") {
+                VStack(alignment: .leading, spacing: 18) {
+                    Toggle(
+                        "Allow automation",
+                        isOn: $appState.allowAutomation
+                    )
+
+                    Text("Lets the ghostpepper:// URL scheme and Shortcuts start or stop meetings, summarize, and read the last transcription. Off by default because a URL scheme is unauthenticated. Starting a meeting still asks for consent.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 
