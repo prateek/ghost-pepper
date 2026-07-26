@@ -40,6 +40,14 @@ struct MeetingMarkdownWriter {
     private static func renderMeetingMarkdown(transcript: MeetingTranscript) -> String {
         var lines: [String] = []
 
+        // Machine-managed YAML frontmatter. The session id lets automation
+        // (URL scheme / App Intents) reopen a saved meeting by id. It is a stable,
+        // user-visible contract — do not edit it by hand.
+        lines.append("---")
+        lines.append("id: \(transcript.sessionID.uuidString)")
+        lines.append("---")
+        lines.append("")
+
         // Title
         lines.append("# \(transcript.meetingName)")
         lines.append("")
@@ -105,6 +113,7 @@ struct MeetingMarkdownWriter {
         var lines: [String] = []
 
         lines.append("---")
+        lines.append("id: \(transcript.sessionID.uuidString)")
         lines.append("type: reader")
         if let source = transcript.sourceURL, !source.isEmpty {
             lines.append("source: \(source)")
@@ -159,6 +168,7 @@ struct MeetingMarkdownWriter {
         var sourceURL: String?
         var parsedStartDate: Date?
         var attendees: [MeetingAttendee] = []
+        var sessionID: UUID?
         var inFrontmatter = false
         var frontmatterSeen = false
         var inNotes = false
@@ -193,6 +203,9 @@ struct MeetingMarkdownWriter {
                 }
                 if line.hasPrefix("attendees:") {
                     attendees = parseFrontmatterAttendees(line)
+                }
+                if let id = MeetingHistory.sessionID(fromFrontmatterLine: line) {
+                    sessionID = id
                 }
                 continue
             }
@@ -250,7 +263,7 @@ struct MeetingMarkdownWriter {
             }
         }
 
-        let transcript = MeetingTranscript(meetingName: title, startDate: parsedStartDate ?? Date())
+        let transcript = MeetingTranscript(meetingName: title, startDate: parsedStartDate ?? Date(), sessionID: sessionID ?? UUID())
         transcript.notes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
         transcript.attendees = attendees
         let trimmedSummary = summary.trimmingCharacters(in: .whitespacesAndNewlines)
